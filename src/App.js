@@ -21,6 +21,19 @@ const MAJOR_SCALE_INTERVALS = [
   2,
   1
 ];
+const MINOR_SCALE_INTERVALS = [
+  2,
+  1,
+  2,
+  2,
+  1,
+  2,
+  2
+];
+const SCALE_INTERVALS = {
+  MAJOR: [...MAJOR_SCALE_INTERVALS],
+  MINOR: [...MINOR_SCALE_INTERVALS]
+}
 const PITCHES = [
   "C",
   "C#",
@@ -36,25 +49,33 @@ const PITCHES = [
   "B"
 ]
 
-const calculateScale = (startingNote) => {
+const calculateScale = (startingNote, useDom7) => {
   let pointer = PITCHES.indexOf(startingNote);
   // console.log({pointer, PITCHES, startingNote});
   const notes = [];
-  MAJOR_SCALE_INTERVALS.map((interval) => {
-    notes.push(PITCHES[pointer]);
-    pointer += interval
-    // console.log({pointer})
-    if (pointer == 12) {
-      pointer = 0;
-    } else if (pointer === 13) {
-      pointer = 1;
-    }
-  });
+  SCALE_INTERVALS
+    .MAJOR
+    .map((interval, noteNumber) => {
+      if (useDom7 && noteNumber === 6) {
+        console.log("using dom 7");
+        const d7 = pointer-1;
+        notes.push(PITCHES[d7]);
+      } else {
+        notes.push(PITCHES[pointer]);
+
+      }
+      pointer += interval
+      // console.log({pointer})
+      if (pointer == 12) {
+        pointer = 0;
+      } else if (pointer === 13) {
+        pointer = 1;
+      }
+    });
   notes.push(PITCHES[PITCHES.indexOf(startingNote)]);
   // console.log({notes})
   return notes;
 }
-
 
 class App extends Component {
 
@@ -75,6 +96,12 @@ class App extends Component {
         scale: calculateScale(prev.tonic),
         selectedScale: calculateScale(prev.currentlySelectedScale)
       }
+    })
+  }
+
+  updateCurrentScaleToUseDom7(event){
+    this.setState((prev) => {
+      return {selectedScale: calculateScale(prev.currentlySelectedScale, true), currentlySelectedScale: prev.currentlySelectedScale}
     })
   }
 
@@ -99,12 +126,19 @@ class App extends Component {
               {this
                 .state
                 .chordButtons
-                .map(letter => {
-                  return <button onClick={(e) => this.updateCurrentScale(e, letter)}>{letter}</button>
+                .map((letter, i) => {
+                  return <button key={i} onClick={(e) => this.updateCurrentScale(e, letter)}>{letter}</button>
                 })}
             </div>
             <div>accents</div>
-            <div>Seventh</div>
+            <div>
+              <div>
+                Seventh
+              </div>
+              <div>
+                <button onClick={e => this.updateCurrentScaleToUseDom7(e)}>Use Dom 7th</button>
+                </div>
+            </div>
           </div>
           <div>
             <div>current chord</div>
